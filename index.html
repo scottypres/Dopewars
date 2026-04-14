@@ -94,7 +94,7 @@
             </div>
             <div class="status-row">
                 <span class="status-item"><span class="label">Health:</span> <span id="stat-health-bar"><span id="stat-health-fill"></span></span> <span id="stat-health">100</span>%</span>
-                <span class="status-item"><span class="label">Guns:</span> <span id="stat-guns">0</span></span>
+                <span class="status-item"><span class="label">Weapon:</span> <span id="stat-weapon">Fists</span></span>
                 <span class="status-item"><span class="label">Net Worth:</span> $<span id="stat-net-worth">0</span></span>
             </div>
         </div>
@@ -310,6 +310,14 @@
             </div>
         </div>
         <div class="gameover-rank" id="gameover-rank"></div>
+        <div id="score-submit" class="score-submit">
+            <div class="modal-input-group" style="justify-content:center">
+                <label for="player-name">Your Name:</label>
+                <input type="text" id="player-name" maxlength="20" placeholder="Enter name" value="">
+                <button id="btn-submit-score" class="btn btn-primary btn-small">Submit</button>
+            </div>
+            <p id="score-submit-status" class="score-status"></p>
+        </div>
         <div class="title-menu">
             <button id="btn-play-again" class="btn btn-primary">Play Again</button>
             <button id="btn-gameover-scores" class="btn">High Scores</button>

@@ -804,6 +804,39 @@ tr:hover td {
     margin: 10px 0;
 }
 
+.score-submit {
+    margin: 10px 0;
+}
+
+.score-submit input[type="text"] {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 6px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--green);
+    width: 150px;
+    outline: none;
+}
+
+.score-submit input[type="text"]:focus {
+    border-color: var(--green);
+}
+
+.score-status {
+    font-size: 12px;
+    margin-top: 8px;
+    min-height: 18px;
+}
+
+.score-status.success {
+    color: var(--green);
+}
+
+.score-status.error {
+    color: var(--red);
+}
+
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
     width: 6px;

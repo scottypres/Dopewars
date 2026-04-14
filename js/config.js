@@ -112,10 +112,17 @@ const CONFIG = {
             cost: [150, 300],
         },
         GUN_SHOP: {
-            chance: 0.05,
-            cost: [350, 600],
+            chance: 0.06,
         },
     },
+
+    // Weapon tiers (ordered weakest to strongest)
+    WEAPONS: [
+        { id: 'knife',     name: 'Knife',         power: 1, fightBonus: 0.15, runBonus: 0.00, cost: [150, 300]   },
+        { id: 'revolver',  name: '.38 Revolver',   power: 2, fightBonus: 0.30, runBonus: 0.05, cost: [350, 600]   },
+        { id: 'shotgun',   name: 'Sawed-off Shotgun', power: 3, fightBonus: 0.50, runBonus: 0.08, cost: [700, 1200]  },
+        { id: 'uzi',       name: 'Uzi',           power: 4, fightBonus: 0.70, runBonus: 0.10, cost: [1500, 3000] },
+    ],
 
     // Ranks based on final net worth
     RANKS: [

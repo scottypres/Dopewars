@@ -41,6 +41,14 @@
     });
 
     // ===== Game Over Screen =====
+    document.getElementById('btn-submit-score').addEventListener('click', () => {
+        ui.submitScore();
+    });
+
+    document.getElementById('player-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') ui.submitScore();
+    });
+
     document.getElementById('btn-play-again').addEventListener('click', () => {
         ui.startGame();
     });

@@ -33,7 +33,7 @@ class DopeWarsUI {
             maxSpace: document.getElementById('stat-max-space'),
             health: document.getElementById('stat-health'),
             healthFill: document.getElementById('stat-health-fill'),
-            guns: document.getElementById('stat-guns'),
+            weapon: document.getElementById('stat-weapon'),
             netWorth: document.getElementById('stat-net-worth'),
         };
 
@@ -86,7 +86,7 @@ class DopeWarsUI {
         this.stats.space.textContent = g.freeSpace;
         this.stats.maxSpace.textContent = g.maxSpace;
         this.stats.health.textContent = g.health;
-        this.stats.guns.textContent = g.guns;
+        this.stats.weapon.textContent = g.weaponName;
 
         const nw = g.netWorth;
         this.stats.netWorth.textContent = (nw < 0 ? '-$' + Math.abs(nw).toLocaleString() : nw.toLocaleString());
@@ -340,9 +340,9 @@ class DopeWarsUI {
                 title.textContent = 'Mugging!';
                 title.style.color = '#ff4444';
                 message.textContent = event.message +
-                    (this.game.guns > 0 ? ` You have ${this.game.guns} gun${this.game.guns > 1 ? 's' : ''}.` : ' You have no weapons!');
+                    (this.game.hasWeapon ? ` You have: ${this.game.weaponName}.` : ' You have no weapons!');
                 const fightBtn = this.createEventButton(
-                    this.game.guns > 0 ? 'Fight!' : 'Fight (no gun!)',
+                    this.game.hasWeapon ? `Fight (${this.game.weaponName})` : 'Fight (fists!)',
                     () => this.resolveCurrentEvent('fight')
                 );
                 const runBtn = this.createEventButton('Run!', () => this.resolveCurrentEvent('run'));
@@ -356,7 +356,7 @@ class DopeWarsUI {
                 message.textContent = event.message;
                 const runCopBtn = this.createEventButton('Run!', () => this.resolveCurrentEvent('run'));
                 const fightCopBtn = this.createEventButton(
-                    this.game.guns > 0 ? 'Fight!' : 'Fight (risky!)',
+                    this.game.hasWeapon ? `Fight (${this.game.weaponName})` : 'Fight (risky!)',
                     () => this.resolveCurrentEvent('fight')
                 );
                 actions.appendChild(runCopBtn);
@@ -549,7 +549,8 @@ class DopeWarsUI {
     showGameOver() {
         this.game.clearSaveCookie();
         const stats = this.game.getFinalStats();
-        const rank = this.game.getRank(stats.netWorth);
+        this.finalStats = stats;
+        this.finalRank = this.game.getRank(stats.netWorth);
 
         document.getElementById('final-net-worth').textContent =
             (stats.netWorth < 0 ? '-$' + Math.abs(stats.netWorth).toLocaleString() : '$' + stats.netWorth.toLocaleString());
@@ -563,20 +564,56 @@ class DopeWarsUI {
         document.getElementById('final-trades').textContent = stats.trades;
 
         const rankEl = document.getElementById('gameover-rank');
-        rankEl.textContent = `Rank: ${rank.title}`;
-        rankEl.style.color = rank.color;
-        rankEl.style.borderColor = rank.color;
+        rankEl.textContent = `Rank: ${this.finalRank.title}`;
+        rankEl.style.color = this.finalRank.color;
+        rankEl.style.borderColor = this.finalRank.color;
 
-        // Auto-save high score
-        this.game.saveHighScore('Player', stats.netWorth);
+        // Reset score submit form
+        document.getElementById('player-name').value = '';
+        document.getElementById('score-submit-status').textContent = '';
+        document.getElementById('score-submit').style.display = '';
+        document.getElementById('btn-submit-score').disabled = false;
 
         this.showScreen('gameover');
+        document.getElementById('player-name').focus();
+    }
+
+    async submitScore() {
+        const nameInput = document.getElementById('player-name');
+        const statusEl = document.getElementById('score-submit-status');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+            statusEl.textContent = 'Please enter your name.';
+            statusEl.className = 'score-status error';
+            return;
+        }
+
+        document.getElementById('btn-submit-score').disabled = true;
+        statusEl.textContent = 'Submitting...';
+        statusEl.className = 'score-status';
+
+        const result = await this.game.submitHighScore(
+            name, this.finalStats.netWorth, this.finalRank.title
+        );
+
+        if (result && result.success) {
+            statusEl.textContent = `Score submitted! You ranked #${result.position} of ${result.total}.`;
+            statusEl.className = 'score-status success';
+            document.getElementById('score-submit').style.display = 'none';
+        } else {
+            statusEl.textContent = 'Failed to submit score. Server may be offline.';
+            statusEl.className = 'score-status error';
+            document.getElementById('btn-submit-score').disabled = false;
+        }
     }
 
     // ===== High Scores =====
-    renderHighScores() {
+    async renderHighScores() {
         const list = document.getElementById('high-scores-list');
-        const scores = this.game.loadHighScores();
+        list.innerHTML = '<p class="empty-scores">Loading scores...</p>';
+
+        const scores = await this.game.fetchHighScores();
 
         if (scores.length === 0) {
             list.innerHTML = '<p class="empty-scores">No high scores yet. Start playing!</p>';
@@ -590,7 +627,7 @@ class DopeWarsUI {
             const nw = score.netWorth;
             entry.innerHTML = `
                 <span class="score-rank">#${i + 1}</span>
-                <span class="score-name">${score.name || 'Player'}</span>
+                <span class="score-name">${score.name || 'Player'}${score.rank ? ' <span style="color:#888;font-size:11px">(' + score.rank + ')</span>' : ''}</span>
                 <span class="score-value">${nw < 0 ? '-$' + Math.abs(nw).toLocaleString() : '$' + nw.toLocaleString()}</span>
             `;
             list.appendChild(entry);

@@ -14,7 +14,7 @@ class DopeWarsGame {
         this.debt = CONFIG.STARTING_DEBT;
         this.health = CONFIG.STARTING_HEALTH;
         this.maxSpace = CONFIG.STARTING_SPACE;
-        this.guns = 0;
+        this.weapon = null; // weapon id string or null
         this.locationIndex = 0;
         this.trades = 0;
         this.gameOver = false;
@@ -31,11 +31,28 @@ class DopeWarsGame {
         // Track which items are available at current location (not all items every day)
         this.availableItems = [];
 
-        // High scores from localStorage
-        this.highScores = this.loadHighScores();
-
         // Generate initial prices
         this.generatePrices();
+    }
+
+    // ===== Weapon =====
+    get weaponConfig() {
+        if (!this.weapon) return null;
+        return CONFIG.WEAPONS.find(w => w.id === this.weapon) || null;
+    }
+
+    get weaponPower() {
+        const w = this.weaponConfig;
+        return w ? w.power : 0;
+    }
+
+    get weaponName() {
+        const w = this.weaponConfig;
+        return w ? w.name : 'Fists';
+    }
+
+    get hasWeapon() {
+        return this.weapon !== null;
     }
 
     // ===== Location =====
@@ -330,7 +347,8 @@ class DopeWarsGame {
 
         // Gun shop
         if (Math.random() < CONFIG.ENCOUNTERS.GUN_SHOP.chance) {
-            events.push(this.generateGunShop());
+            const gunEvent = this.generateGunShop();
+            if (gunEvent) events.push(gunEvent);
         }
 
         return events;
@@ -372,8 +390,8 @@ class DopeWarsGame {
         const lossRate = CONFIG.ENCOUNTERS.MUGGING.minLoss +
             Math.random() * (CONFIG.ENCOUNTERS.MUGGING.maxLoss - CONFIG.ENCOUNTERS.MUGGING.minLoss);
 
-        // Guns provide a chance to fight off muggers
-        const fightChance = Math.min(0.8, this.guns * 0.25);
+        const w = this.weaponConfig;
+        const fightChance = w ? Math.min(0.85, w.fightBonus) : 0.10;
 
         return {
             type: 'mugging',
@@ -386,26 +404,26 @@ class DopeWarsGame {
 
     resolveMugging(event, action) {
         if (action === 'fight') {
-            if (this.guns > 0 && Math.random() < event.fightChance) {
-                // Won the fight
-                const damage = Math.floor(Math.random() * 10) + 5;
+            if (Math.random() < event.fightChance) {
+                // Won the fight - better weapons = less damage taken
+                const maxDmg = this.hasWeapon ? Math.max(3, 12 - this.weaponPower * 2) : 15;
+                const damage = Math.floor(Math.random() * maxDmg) + 3;
                 this.health -= damage;
+                const wpnMsg = this.hasWeapon ? `You pulled out your ${this.weaponName}` : 'You fought them off bare-handed';
                 return {
-                    message: `You pulled out your gun and fought them off! You took ${damage}% damage.`,
+                    message: `${wpnMsg} and won! You took ${damage}% damage.`,
                     success: true,
                 };
-            } else if (this.guns > 0) {
-                // Lost the fight even with guns
-                const damage = Math.floor(Math.random() * 20) + 15;
+            } else if (this.hasWeapon) {
+                const damage = Math.floor(Math.random() * 18) + 12;
                 this.health -= damage;
                 const loss = Math.floor(this.cash * event.lossRate);
                 this.cash -= loss;
                 return {
-                    message: `You fought hard but they overpowered you! Lost $${loss.toLocaleString()} and took ${damage}% damage.`,
+                    message: `You fought hard with your ${this.weaponName} but they overpowered you! Lost $${loss.toLocaleString()} and took ${damage}% damage.`,
                     success: false,
                 };
             } else {
-                // No guns
                 const damage = Math.floor(Math.random() * 25) + 15;
                 this.health -= damage;
                 const loss = Math.floor(this.cash * event.lossRate * 1.5);
@@ -444,8 +462,9 @@ class DopeWarsGame {
     }
 
     resolvePoliceEncounter(action) {
+        const w = this.weaponConfig;
         if (action === 'run') {
-            const runChance = 0.4 + (this.guns > 0 ? 0.1 : 0);
+            const runChance = 0.4 + (w ? w.runBonus : 0);
             if (Math.random() < runChance) {
                 return {
                     message: 'You shook the cops! That was close.',
@@ -481,22 +500,23 @@ class DopeWarsGame {
                 };
             }
         } else if (action === 'fight') {
-            if (this.guns > 0) {
-                const fightChance = Math.min(0.6, this.guns * 0.2);
+            if (this.hasWeapon) {
+                const fightChance = Math.min(0.65, w.fightBonus * 0.8);
                 if (Math.random() < fightChance) {
-                    const damage = Math.floor(Math.random() * 15) + 10;
+                    const maxDmg = Math.max(5, 18 - this.weaponPower * 3);
+                    const damage = Math.floor(Math.random() * maxDmg) + 5;
                     this.health -= damage;
                     return {
-                        message: `You shot your way out! Took ${damage}% damage in the firefight.`,
+                        message: `You used your ${this.weaponName} to shoot your way out! Took ${damage}% damage.`,
                         success: true,
                     };
                 } else {
-                    const damage = Math.floor(Math.random() * 30) + 20;
+                    const damage = Math.floor(Math.random() * 25) + 18;
                     this.health -= damage;
                     const fine = Math.floor(this.cash * 0.3);
                     this.cash = Math.max(0, this.cash - fine);
                     return {
-                        message: `The cops overwhelmed you! Lost $${fine.toLocaleString()} and took ${damage}% damage.`,
+                        message: `The cops overwhelmed you despite your ${this.weaponName}! Lost $${fine.toLocaleString()} and took ${damage}% damage.`,
                         success: false,
                     };
                 }
@@ -506,7 +526,7 @@ class DopeWarsGame {
                 const fine = Math.floor(this.cash * 0.25);
                 this.cash = Math.max(0, this.cash - fine);
                 return {
-                    message: `Fighting cops without a gun? Bold move. Lost $${fine.toLocaleString()} and took ${damage}% damage.`,
+                    message: `Fighting cops with your fists? Bold move. Lost $${fine.toLocaleString()} and took ${damage}% damage.`,
                     success: false,
                 };
             }
@@ -571,13 +591,21 @@ class DopeWarsGame {
     }
 
     generateGunShop() {
-        const enc = CONFIG.ENCOUNTERS.GUN_SHOP;
-        const cost = enc.cost[0] + Math.floor(Math.random() * (enc.cost[1] - enc.cost[0]));
+        // Offer a weapon that's better than current
+        const currentPower = this.weaponPower;
+        const upgrades = CONFIG.WEAPONS.filter(w => w.power > currentPower);
+        if (upgrades.length === 0) return null; // Already have the best
+
+        // Pick a random available upgrade (weighted toward next tier)
+        const weapon = upgrades[0]; // Offer the next tier up
+        const cost = weapon.cost[0] + Math.floor(Math.random() * (weapon.cost[1] - weapon.cost[0]));
+        const currentName = this.weaponName;
 
         return {
             type: 'gun',
-            message: `A street vendor is selling guns for $${cost.toLocaleString()}. Want to buy one?`,
+            message: `A street vendor is selling a ${weapon.name} for $${cost.toLocaleString()}.${this.hasWeapon ? ` (You have: ${currentName})` : ''} Want to buy it?`,
             cost: cost,
+            weaponId: weapon.id,
             interactive: true,
         };
     }
@@ -588,10 +616,11 @@ class DopeWarsGame {
                 return { message: "You can't afford it!", success: false };
             }
             this.cash -= event.cost;
-            this.guns++;
-            return { message: `Bought a gun! You now have ${this.guns} gun${this.guns > 1 ? 's' : ''}. This will help in fights.`, success: true };
+            this.weapon = event.weaponId;
+            const w = this.weaponConfig;
+            return { message: `Bought a ${w.name}! This will help in fights.`, success: true };
         }
-        return { message: "You decided to pass on the firearm.", success: true };
+        return { message: "You decided to pass on the weapon.", success: true };
     }
 
     // ===== Game Over & Scoring =====
@@ -623,7 +652,7 @@ class DopeWarsGame {
             debt: this.debt,
             health: this.health,
             maxSpace: this.maxSpace,
-            guns: this.guns,
+            weapon: this.weapon,
             locationIndex: this.locationIndex,
             trades: this.trades,
             inventory: this.inventory,
@@ -640,7 +669,7 @@ class DopeWarsGame {
         this.debt = state.debt;
         this.health = state.health;
         this.maxSpace = state.maxSpace;
-        this.guns = state.guns;
+        this.weapon = state.weapon || null;
         this.locationIndex = state.locationIndex;
         this.trades = state.trades;
         this.gameOver = false;
@@ -681,24 +710,28 @@ class DopeWarsGame {
         return document.cookie.indexOf('dopewars_save=') !== -1;
     }
 
-    // ===== High Scores =====
-    loadHighScores() {
+    // ===== High Scores (Server) =====
+    async fetchHighScores() {
         try {
-            const data = localStorage.getItem('dopewars_highscores');
-            return data ? JSON.parse(data) : [];
+            const res = await fetch('/api/scores');
+            if (!res.ok) return [];
+            return await res.json();
         } catch {
             return [];
         }
     }
 
-    saveHighScore(name, netWorth) {
-        this.highScores.push({ name, netWorth, date: new Date().toISOString() });
-        this.highScores.sort((a, b) => b.netWorth - a.netWorth);
-        this.highScores = this.highScores.slice(0, 10);
+    async submitHighScore(name, netWorth, rank) {
         try {
-            localStorage.setItem('dopewars_highscores', JSON.stringify(this.highScores));
+            const res = await fetch('/api/scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, netWorth, rank }),
+            });
+            if (!res.ok) return null;
+            return await res.json();
         } catch {
-            // localStorage unavailable
+            return null;
         }
     }
 }
