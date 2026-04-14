@@ -204,6 +204,26 @@ class DopeWarsGame {
         return { success: true, message: `Withdrew $${amount.toLocaleString()} from the bank.` };
     }
 
+    // ===== Hospital =====
+    heal(hpAmount) {
+        hpAmount = Math.floor(hpAmount);
+        if (hpAmount <= 0) return { success: false, message: 'Invalid amount.' };
+
+        const missing = CONFIG.STARTING_HEALTH - this.health;
+        if (missing <= 0) return { success: false, message: "You're already at full health!" };
+        if (hpAmount > missing) hpAmount = missing;
+
+        const cost = hpAmount * CONFIG.HOSPITAL_COST_PER_HP;
+        if (cost > this.cash) return { success: false, message: "You can't afford that much healing!" };
+
+        this.cash -= cost;
+        this.health += hpAmount;
+        return {
+            success: true,
+            message: `Healed ${hpAmount}% for $${cost.toLocaleString()}. Health: ${this.health}%.`,
+        };
+    }
+
     // ===== Loan Shark =====
     repayDebt(amount) {
         amount = Math.floor(amount);

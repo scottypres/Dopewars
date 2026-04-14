@@ -142,6 +142,7 @@
             <button id="btn-travel" class="btn btn-primary">Travel</button>
             <button id="btn-bank" class="btn">Bank</button>
             <button id="btn-loan-shark" class="btn">Loan Shark</button>
+            <button id="btn-hospital" class="btn">Hospital</button>
             <button id="btn-inventory" class="btn btn-toggle" data-active="false">Stash</button>
         </div>
 
@@ -257,6 +258,26 @@
                 </div>
             </div>
             <button class="btn modal-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Hospital Modal -->
+    <div id="modal-hospital" class="modal">
+        <div class="modal-content">
+            <h3>Hospital</h3>
+            <p>Cost: $<span id="hospital-cost-per-hp"></span> per 1% HP</p>
+            <p>Your health: <span id="hospital-current-hp"></span>%</p>
+            <p>Cash on hand: $<span id="hospital-cash"></span></p>
+            <div class="modal-input-group">
+                <label for="hospital-hp-amount">Heal HP:</label>
+                <input type="number" id="hospital-hp-amount" min="0" value="0">
+                <button id="btn-heal-max" class="btn btn-small">Max</button>
+            </div>
+            <p class="modal-total">Cost: $<span id="hospital-total">0</span></p>
+            <div class="modal-actions">
+                <button id="btn-heal-confirm" class="btn btn-primary">Heal</button>
+                <button class="btn modal-close">Close</button>
+            </div>
         </div>
     </div>
 

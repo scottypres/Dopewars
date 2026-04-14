@@ -70,6 +70,11 @@
         ui.openLoanModal();
     });
 
+    document.getElementById('btn-hospital').addEventListener('click', () => {
+        if (ui.processingEvent) return;
+        ui.openHospitalModal();
+    });
+
     document.getElementById('btn-inventory').addEventListener('click', function () {
         const panel = ui.inventoryPanel;
         const isVisible = panel.classList.contains('visible');
@@ -232,6 +237,36 @@
         }
     });
 
+    // ===== Hospital Modal =====
+    document.getElementById('hospital-hp-amount').addEventListener('input', () => {
+        ui.updateHospitalTotal();
+    });
+
+    document.getElementById('btn-heal-max').addEventListener('click', () => {
+        const missing = CONFIG.STARTING_HEALTH - game.health;
+        const canAfford = Math.floor(game.cash / CONFIG.HOSPITAL_COST_PER_HP);
+        document.getElementById('hospital-hp-amount').value = Math.min(missing, canAfford);
+        ui.updateHospitalTotal();
+    });
+
+    document.getElementById('btn-heal-confirm').addEventListener('click', () => {
+        const hp = parseInt(document.getElementById('hospital-hp-amount').value) || 0;
+        if (hp <= 0) return;
+
+        const result = game.heal(hp);
+        if (result.success) {
+            ui.addMessage(result.message, 'msg-buy');
+            document.getElementById('hospital-current-hp').textContent = game.health;
+            document.getElementById('hospital-cash').textContent = game.cash.toLocaleString();
+            document.getElementById('hospital-hp-amount').value = 0;
+            document.getElementById('hospital-total').textContent = '0';
+            ui.updateStats();
+            ui.autoSave();
+        } else {
+            ui.addMessage(result.message, 'msg-danger');
+        }
+    });
+
     // ===== Modal Close Buttons =====
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -287,6 +322,11 @@
             case 'l':
                 if (!ui.modals.loan.classList.contains('active')) {
                     ui.openLoanModal();
+                }
+                break;
+            case 'h':
+                if (!ui.modals.hospital.classList.contains('active')) {
+                    ui.openHospitalModal();
                 }
                 break;
             case 'escape':

@@ -51,6 +51,7 @@ class DopeWarsUI {
             sell: document.getElementById('modal-sell'),
             bank: document.getElementById('modal-bank'),
             loan: document.getElementById('modal-loan'),
+            hospital: document.getElementById('modal-hospital'),
             event: document.getElementById('modal-event'),
         };
     }
@@ -280,6 +281,23 @@ class DopeWarsUI {
         document.getElementById('loan-repay-amount').value = 0;
         document.getElementById('loan-borrow-amount').value = 0;
         this.openModal('loan');
+    }
+
+    // ===== Hospital Modal =====
+    openHospitalModal() {
+        const missing = CONFIG.STARTING_HEALTH - this.game.health;
+        document.getElementById('hospital-cost-per-hp').textContent = CONFIG.HOSPITAL_COST_PER_HP.toLocaleString();
+        document.getElementById('hospital-current-hp').textContent = this.game.health;
+        document.getElementById('hospital-cash').textContent = this.game.cash.toLocaleString();
+        document.getElementById('hospital-hp-amount').value = 0;
+        document.getElementById('hospital-hp-amount').max = missing;
+        document.getElementById('hospital-total').textContent = '0';
+        this.openModal('hospital');
+    }
+
+    updateHospitalTotal() {
+        const hp = parseInt(document.getElementById('hospital-hp-amount').value) || 0;
+        document.getElementById('hospital-total').textContent = (hp * CONFIG.HOSPITAL_COST_PER_HP).toLocaleString();
     }
 
     // ===== Travel Modal =====

@@ -10,6 +10,7 @@ const CONFIG = {
     STARTING_HEALTH: 100,
     LOAN_INTEREST_RATE: 0.10,
     MAX_BORROW: 15000,
+    HOSPITAL_COST_PER_HP: 200,
 
     LOCATIONS: [
         { id: 'bronx', name: 'The Bronx', danger: 0.15 },
