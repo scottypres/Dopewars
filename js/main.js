@@ -9,6 +9,15 @@
     const ui = new DopeWarsUI(game);
 
     // ===== Title Screen =====
+    const btnContinue = document.getElementById('btn-continue');
+    if (game.hasSavedGame()) {
+        btnContinue.style.display = '';
+    }
+
+    btnContinue.addEventListener('click', () => {
+        ui.continueGame();
+    });
+
     document.getElementById('btn-new-game').addEventListener('click', () => {
         ui.startGame();
     });
@@ -106,6 +115,7 @@
             ui.addMessage(result.message, 'msg-buy');
             ui.closeModal('buy');
             ui.refresh();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }
@@ -137,6 +147,7 @@
             }
             ui.closeModal('sell');
             ui.refresh();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }
@@ -160,6 +171,7 @@
             document.getElementById('bank-balance').textContent = game.bank.toLocaleString();
             document.getElementById('bank-deposit-amount').value = 0;
             ui.updateStats();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }
@@ -174,6 +186,7 @@
             document.getElementById('bank-balance').textContent = game.bank.toLocaleString();
             document.getElementById('bank-withdraw-amount').value = 0;
             ui.updateStats();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }
@@ -197,6 +210,7 @@
             document.getElementById('loan-cash').textContent = game.cash.toLocaleString();
             document.getElementById('loan-repay-amount').value = 0;
             ui.updateStats();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }
@@ -211,6 +225,7 @@
             document.getElementById('loan-cash').textContent = game.cash.toLocaleString();
             document.getElementById('loan-borrow-amount').value = 0;
             ui.updateStats();
+            ui.autoSave();
         } else {
             ui.addMessage(result.message, 'msg-danger');
         }

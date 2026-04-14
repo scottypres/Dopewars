@@ -581,6 +581,71 @@ class DopeWarsGame {
         return CONFIG.RANKS[CONFIG.RANKS.length - 1];
     }
 
+    // ===== Save/Load (Cookies) =====
+    saveToState() {
+        return {
+            day: this.day,
+            cash: this.cash,
+            bank: this.bank,
+            debt: this.debt,
+            health: this.health,
+            maxSpace: this.maxSpace,
+            guns: this.guns,
+            locationIndex: this.locationIndex,
+            trades: this.trades,
+            inventory: this.inventory,
+            prices: this.prices,
+            availableItems: this.availableItems,
+        };
+    }
+
+    loadFromState(state) {
+        this.day = state.day;
+        this.cash = state.cash;
+        this.bank = state.bank;
+        this.debt = state.debt;
+        this.health = state.health;
+        this.maxSpace = state.maxSpace;
+        this.guns = state.guns;
+        this.locationIndex = state.locationIndex;
+        this.trades = state.trades;
+        this.gameOver = false;
+        this.inventory = state.inventory;
+        this.prices = state.prices;
+        this.availableItems = state.availableItems;
+    }
+
+    saveToCookie() {
+        try {
+            const data = JSON.stringify(this.saveToState());
+            const encoded = encodeURIComponent(data);
+            document.cookie = `dopewars_save=${encoded};path=/;max-age=${60 * 60 * 24 * 30};SameSite=Lax`;
+        } catch {
+            // Cookie write failed
+        }
+    }
+
+    loadFromCookie() {
+        try {
+            const match = document.cookie.match(/(?:^|;\s*)dopewars_save=([^;]*)/);
+            if (!match) return false;
+            const data = JSON.parse(decodeURIComponent(match[1]));
+            if (!data || !data.day) return false;
+            this.loadFromState(data);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    clearSaveCookie() {
+        document.cookie = 'dopewars_save=;path=/;max-age=0';
+    }
+
+    hasSavedGame() {
+        return document.cookie.indexOf('dopewars_save=') !== -1;
+    }
+
     // ===== High Scores =====
     loadHighScores() {
         try {

@@ -394,6 +394,7 @@ class DopeWarsUI {
             this.closeModal('event');
             this.processingEvent = false;
             this.refresh();
+            this.autoSave();
             this.checkGameOver();
         }
     }
@@ -446,6 +447,7 @@ class DopeWarsUI {
         }
 
         this.updateStats();
+        this.autoSave();
         this.processEventQueue(result.events);
     }
 
@@ -482,6 +484,7 @@ class DopeWarsUI {
     }
 
     showGameOver() {
+        this.game.clearSaveCookie();
         const stats = this.game.getFinalStats();
         const rank = this.game.getRank(stats.netWorth);
 
@@ -531,15 +534,35 @@ class DopeWarsUI {
         });
     }
 
+    // ===== Auto-save =====
+    autoSave() {
+        if (!this.game.gameOver) {
+            this.game.saveToCookie();
+        }
+    }
+
     // ===== Initialize Game Screen =====
     startGame() {
         this.game.reset();
+        this.game.clearSaveCookie();
         this.messagesEl.innerHTML = '';
         this.addMessage('Welcome to Dope Wars!', 'msg-event');
         this.addMessage(`You start in ${this.game.location.name} with $${this.game.cash.toLocaleString()} cash.`, 'msg-info');
         this.addMessage(`You owe the Loan Shark $${this.game.debt.toLocaleString()}. Interest: 10%/day!`, 'msg-danger');
         this.addMessage('Buy low, sell high. You have 30 days. Good luck!', 'msg-info');
+        this.autoSave();
         this.refresh();
         this.showScreen('game');
+    }
+
+    continueGame() {
+        if (!this.game.loadFromCookie()) return false;
+        this.messagesEl.innerHTML = '';
+        this.addMessage('Welcome back!', 'msg-event');
+        this.addMessage(`Day ${this.game.day} - ${this.game.location.name}`, 'msg-info');
+        this.addMessage(`Cash: $${this.game.cash.toLocaleString()} | Debt: $${this.game.debt.toLocaleString()}`, 'msg-info');
+        this.refresh();
+        this.showScreen('game');
+        return true;
     }
 }
