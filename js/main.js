@@ -101,7 +101,8 @@
         const price = game.prices[ui.currentBuyItem] || 1;
         const maxAfford = Math.floor(game.cash / price);
         const maxSpace = game.freeSpace;
-        const max = Math.min(maxAfford, maxSpace);
+        const dealerStock = game.stock[ui.currentBuyItem] || 0;
+        const max = Math.min(maxAfford, maxSpace, dealerStock);
         document.getElementById('buy-quantity').value = max;
         ui.updateBuyTotal();
     });
