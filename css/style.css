@@ -451,6 +451,16 @@ tr:hover td {
     font-weight: bold;
 }
 
+.stock-qty {
+    color: var(--text-dim);
+}
+
+.stock-empty {
+    color: var(--red-dim);
+    font-style: italic;
+    font-size: 11px;
+}
+
 .item-qty {
     color: var(--yellow);
 }

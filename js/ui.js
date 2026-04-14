@@ -136,13 +136,17 @@ class DopeWarsUI {
                 else if (price < item.minPrice * 0.5) priceClass += ' low';
             }
 
+            const dealerStock = available ? (this.game.stock[item.id] || 0) : 0;
+            const soldOut = available && dealerStock <= 0;
+
             row.innerHTML = `
                 <td class="item-name">${item.name}</td>
                 <td class="${available ? priceClass : 'no-stock'}">${available ? '$' + price.toLocaleString() : 'N/A'}</td>
+                <td class="${soldOut ? 'stock-empty' : 'stock-qty'}">${available ? (dealerStock > 0 ? dealerStock : 'Sold out') : '-'}</td>
                 <td class="item-qty">${qty > 0 ? qty : '-'}</td>
                 <td class="item-pl">${plCell}</td>
                 <td class="item-actions">
-                    <button class="btn btn-buy" ${!available ? 'disabled' : ''} data-item="${item.id}">Buy</button>
+                    <button class="btn btn-buy" ${!available || soldOut ? 'disabled' : ''} data-item="${item.id}">Buy</button>
                     <button class="btn btn-sell" ${qty <= 0 ? 'disabled' : ''} data-item="${item.id}">Sell</button>
                 </td>
             `;
@@ -187,12 +191,14 @@ class DopeWarsUI {
         this.currentBuyItem = itemId;
         const maxAfford = Math.floor(this.game.cash / price);
         const maxSpace = this.game.freeSpace;
-        const maxQty = Math.min(maxAfford, maxSpace);
+        const dealerStock = this.game.stock[itemId] || 0;
+        const maxQty = Math.min(maxAfford, maxSpace, dealerStock);
 
         document.getElementById('buy-item-name').textContent = item.name;
         document.getElementById('buy-item-price').textContent = price.toLocaleString();
         document.getElementById('buy-max-afford').textContent = maxAfford;
         document.getElementById('buy-max-space').textContent = maxSpace;
+        document.getElementById('buy-max-stock').textContent = dealerStock;
         document.getElementById('buy-quantity').value = 0;
         document.getElementById('buy-quantity').max = maxQty;
         document.getElementById('buy-total').textContent = '0';

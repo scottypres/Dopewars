@@ -25,6 +25,9 @@ class DopeWarsGame {
         // Current market prices: { itemId: price }
         this.prices = {};
 
+        // Dealer stock: { itemId: qty }
+        this.stock = {};
+
         // Track which items are available at current location (not all items every day)
         this.availableItems = [];
 
@@ -78,13 +81,14 @@ class DopeWarsGame {
     // ===== Price Generation =====
     generatePrices() {
         this.prices = {};
+        this.stock = {};
         this.availableItems = [];
 
         for (const item of CONFIG.ITEMS) {
             // Each item has a ~80% chance of being available at any location
             if (Math.random() < 0.80) {
-                const price = this.randomPrice(item);
-                this.prices[item.id] = price;
+                this.prices[item.id] = this.randomPrice(item);
+                this.stock[item.id] = this.randomStock(item);
                 this.availableItems.push(item.id);
             }
         }
@@ -94,6 +98,7 @@ class DopeWarsGame {
             const item = CONFIG.ITEMS[Math.floor(Math.random() * CONFIG.ITEMS.length)];
             if (!this.availableItems.includes(item.id)) {
                 this.prices[item.id] = this.randomPrice(item);
+                this.stock[item.id] = this.randomStock(item);
                 this.availableItems.push(item.id);
             }
         }
@@ -108,6 +113,10 @@ class DopeWarsGame {
         return Math.max(item.minPrice, Math.min(item.maxPrice, Math.round(base + noise)));
     }
 
+    randomStock(item) {
+        return item.minStock + Math.floor(Math.random() * (item.maxStock - item.minStock + 1));
+    }
+
     // ===== Trading =====
     buy(itemId, qty) {
         if (qty <= 0) return { success: false, message: 'Invalid quantity.' };
@@ -115,11 +124,15 @@ class DopeWarsGame {
         const price = this.prices[itemId];
         if (!price) return { success: false, message: 'Item not available here.' };
 
+        const available = this.stock[itemId] || 0;
+        if (qty > available) return { success: false, message: `Dealer only has ${available} to sell!` };
+
         const totalCost = price * qty;
         if (totalCost > this.cash) return { success: false, message: "You can't afford that!" };
         if (qty > this.freeSpace) return { success: false, message: 'Not enough space in your coat!' };
 
         this.cash -= totalCost;
+        this.stock[itemId] -= qty;
 
         if (!this.inventory[itemId]) {
             this.inventory[itemId] = { qty: 0, totalCost: 0 };
@@ -595,6 +608,7 @@ class DopeWarsGame {
             trades: this.trades,
             inventory: this.inventory,
             prices: this.prices,
+            stock: this.stock,
             availableItems: this.availableItems,
         };
     }
@@ -612,6 +626,7 @@ class DopeWarsGame {
         this.gameOver = false;
         this.inventory = state.inventory;
         this.prices = state.prices;
+        this.stock = state.stock || {};
         this.availableItems = state.availableItems;
     }
 
