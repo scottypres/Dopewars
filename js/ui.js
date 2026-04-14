@@ -115,10 +115,23 @@ class DopeWarsUI {
 
             if (!available && qty === 0) continue;
 
-            // Determine if price is unusually high or low
+            // Determine price class based on profit/loss vs avg cost
             let priceClass = 'item-price';
-            if (available) {
-                const midPrice = (item.minPrice + item.maxPrice) / 2;
+            let plCell = '-';
+            if (available && qty > 0 && inv) {
+                const avgCost = inv.totalCost / inv.qty;
+                const pctChange = ((price - avgCost) / avgCost) * 100;
+                if (pctChange > 0) {
+                    priceClass = 'item-price profit';
+                    plCell = `<span class="pl-profit">+${pctChange.toFixed(0)}%</span>`;
+                } else if (pctChange < 0) {
+                    priceClass = 'item-price loss';
+                    plCell = `<span class="pl-loss">${pctChange.toFixed(0)}%</span>`;
+                } else {
+                    plCell = `<span class="pl-even">0%</span>`;
+                }
+            } else if (available) {
+                // No inventory - show price relative to typical range
                 if (price > item.maxPrice * 1.5) priceClass += ' high';
                 else if (price < item.minPrice * 0.5) priceClass += ' low';
             }
@@ -127,6 +140,7 @@ class DopeWarsUI {
                 <td class="item-name">${item.name}</td>
                 <td class="${available ? priceClass : 'no-stock'}">${available ? '$' + price.toLocaleString() : 'N/A'}</td>
                 <td class="item-qty">${qty > 0 ? qty : '-'}</td>
+                <td class="item-pl">${plCell}</td>
                 <td class="item-actions">
                     <button class="btn btn-buy" ${!available ? 'disabled' : ''} data-item="${item.id}">Buy</button>
                     <button class="btn btn-sell" ${qty <= 0 ? 'disabled' : ''} data-item="${item.id}">Sell</button>
@@ -201,13 +215,16 @@ class DopeWarsUI {
 
         this.currentSellItem = itemId;
         const price = this.game.prices[itemId];
+        const avgCost = Math.round(inv.totalCost / inv.qty);
 
         document.getElementById('sell-item-name').textContent = item.name;
         document.getElementById('sell-item-price').textContent = price ? price.toLocaleString() : 'N/A';
+        document.getElementById('sell-avg-cost').textContent = avgCost.toLocaleString();
         document.getElementById('sell-max-qty').textContent = inv.qty;
         document.getElementById('sell-quantity').value = 0;
         document.getElementById('sell-quantity').max = inv.qty;
         document.getElementById('sell-total').textContent = '0';
+        document.getElementById('sell-profit-line').textContent = '';
 
         this.openModal('sell');
         document.getElementById('sell-quantity').focus();
@@ -216,7 +233,29 @@ class DopeWarsUI {
     updateSellTotal() {
         const qty = parseInt(document.getElementById('sell-quantity').value) || 0;
         const price = this.game.prices[this.currentSellItem] || 0;
-        document.getElementById('sell-total').textContent = (qty * price).toLocaleString();
+        const revenue = qty * price;
+        document.getElementById('sell-total').textContent = revenue.toLocaleString();
+
+        const profitLine = document.getElementById('sell-profit-line');
+        const inv = this.game.inventory[this.currentSellItem];
+        if (qty > 0 && inv && inv.qty > 0) {
+            const avgCost = inv.totalCost / inv.qty;
+            const costBasis = Math.round(avgCost * qty);
+            const profit = revenue - costBasis;
+            const pct = costBasis > 0 ? ((profit / costBasis) * 100).toFixed(0) : (profit > 0 ? 100 : 0);
+            if (profit > 0) {
+                profitLine.textContent = `Profit: +$${profit.toLocaleString()} (+${pct}%)`;
+                profitLine.className = 'modal-profit profit';
+            } else if (profit < 0) {
+                profitLine.textContent = `Loss: -$${Math.abs(profit).toLocaleString()} (${pct}%)`;
+                profitLine.className = 'modal-profit loss';
+            } else {
+                profitLine.textContent = 'Break even';
+                profitLine.className = 'modal-profit even';
+            }
+        } else {
+            profitLine.textContent = '';
+        }
     }
 
     // ===== Bank Modal =====

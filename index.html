@@ -109,7 +109,8 @@
                         <tr>
                             <th>Item</th>
                             <th>Price</th>
-                            <th>You Have</th>
+                            <th>Held</th>
+                            <th>P/L</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -184,6 +185,7 @@
         <div class="modal-content">
             <h3>Sell <span id="sell-item-name"></span></h3>
             <p>Price: $<span id="sell-item-price"></span> each</p>
+            <p>Avg Cost: $<span id="sell-avg-cost"></span> each</p>
             <p>You have: <span id="sell-max-qty"></span></p>
             <div class="modal-input-group">
                 <label for="sell-quantity">Quantity:</label>
@@ -191,6 +193,7 @@
                 <button id="btn-sell-max" class="btn btn-small">Max</button>
             </div>
             <p class="modal-total">Total: $<span id="sell-total">0</span></p>
+            <p id="sell-profit-line" class="modal-profit"></p>
             <div class="modal-actions">
                 <button id="btn-sell-confirm" class="btn btn-primary">Sell</button>
                 <button class="btn modal-close">Cancel</button>

@@ -428,7 +428,17 @@ tr:hover td {
 }
 
 .item-price {
+    color: var(--text);
+}
+
+.item-price.profit {
     color: var(--green);
+    font-weight: bold;
+}
+
+.item-price.loss {
+    color: var(--red);
+    font-weight: bold;
 }
 
 .item-price.high {
@@ -443,6 +453,25 @@ tr:hover td {
 
 .item-qty {
     color: var(--yellow);
+}
+
+.item-pl {
+    text-align: right;
+    font-size: 12px;
+}
+
+.pl-profit {
+    color: var(--green);
+    font-weight: bold;
+}
+
+.pl-loss {
+    color: var(--red);
+    font-weight: bold;
+}
+
+.pl-even {
+    color: var(--text-dim);
 }
 
 .item-avg-cost {
@@ -595,6 +624,24 @@ tr:hover td {
     font-size: 16px;
     color: var(--yellow);
     font-weight: bold;
+}
+
+.modal-profit {
+    font-size: 14px;
+    font-weight: bold;
+    min-height: 20px;
+}
+
+.modal-profit.profit {
+    color: var(--green);
+}
+
+.modal-profit.loss {
+    color: var(--red);
+}
+
+.modal-profit.even {
+    color: var(--text-dim);
 }
 
 .modal-actions {
