@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dope Wars</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+</head>
+<body>
+    <!-- Title Screen -->
+    <div id="screen-title" class="screen active">
+        <div class="title-art">
+<pre>
+ ____                   __        __
+|  _ \  ___  _ __   ___\ \      / /_ _ _ __ ___
+| | | |/ _ \| '_ \ / _ \\ \ /\ / / _` | '__/ __|
+| |_| | (_) | |_) |  __/ \ V  V / (_| | |  \__ \
+|____/ \___/| .__/ \___|  \_/\_/ \__,_|_|  |___/
+            |_|
+</pre>
+        </div>
+        <p class="subtitle">The classic drug dealing simulation game</p>
+        <p class="subtitle-small">Based on the original by John E. Dell (1984)</p>
+        <div class="title-menu">
+            <button id="btn-new-game" class="btn btn-primary">New Game</button>
+            <button id="btn-high-scores" class="btn">High Scores</button>
+            <button id="btn-how-to-play" class="btn">How to Play</button>
+        </div>
+    </div>
+
+    <!-- How to Play Screen -->
+    <div id="screen-help" class="screen">
+        <h2>How to Play</h2>
+        <div class="help-content">
+            <p>You have <strong>30 days</strong> to make as much money as possible buying and selling goods across New York City.</p>
+            <h3>Basics</h3>
+            <ul>
+                <li>Travel between 6 locations - prices vary by location and day</li>
+                <li>Buy low, sell high - watch for price spikes and crashes</li>
+                <li>You start with <strong>$2,000</strong> cash and a <strong>$5,500</strong> debt to the Loan Shark</li>
+                <li>Your trench coat holds <strong>100</strong> units - upgrade when you can</li>
+            </ul>
+            <h3>The Loan Shark</h3>
+            <ul>
+                <li>Your debt grows <strong>10% daily</strong> - pay it off fast!</li>
+                <li>You can borrow more if you need startup capital</li>
+                <li>Visit the Loan Shark from any location</li>
+            </ul>
+            <h3>The Bank</h3>
+            <ul>
+                <li>Deposit cash to keep it safe from muggers</li>
+                <li>Withdraw when you need buying power</li>
+            </ul>
+            <h3>Random Events</h3>
+            <ul>
+                <li>Price spikes and crashes create huge profit opportunities</li>
+                <li>Watch out for police and muggers!</li>
+                <li>You might find free goods or a chance to upgrade your coat</li>
+            </ul>
+            <h3>Tips</h3>
+            <ul>
+                <li>Pay off your debt ASAP - compound interest is brutal</li>
+                <li>Expensive items have wider price swings = more profit potential</li>
+                <li>Always keep some cash for unexpected deals</li>
+            </ul>
+        </div>
+        <button id="btn-help-back" class="btn btn-primary">Back</button>
+    </div>
+
+    <!-- High Scores Screen -->
+    <div id="screen-scores" class="screen">
+        <h2>High Scores</h2>
+        <div id="high-scores-list" class="scores-list">
+            <p class="empty-scores">No high scores yet. Start playing!</p>
+        </div>
+        <button id="btn-scores-back" class="btn btn-primary">Back</button>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="screen-game" class="screen">
+        <!-- Status Bar -->
+        <div id="status-bar">
+            <div class="status-row">
+                <span class="status-item"><span class="label">Day:</span> <span id="stat-day">1</span><span class="label">/30</span></span>
+                <span class="status-item"><span class="label">Location:</span> <span id="stat-location">The Bronx</span></span>
+                <span class="status-item"><span class="label">Cash:</span> $<span id="stat-cash">2,000</span></span>
+            </div>
+            <div class="status-row">
+                <span class="status-item"><span class="label">Bank:</span> $<span id="stat-bank">0</span></span>
+                <span class="status-item"><span class="label">Debt:</span> $<span id="stat-debt">5,500</span></span>
+                <span class="status-item"><span class="label">Space:</span> <span id="stat-space">100</span>/<span id="stat-max-space">100</span></span>
+            </div>
+            <div class="status-row">
+                <span class="status-item"><span class="label">Health:</span> <span id="stat-health-bar"><span id="stat-health-fill"></span></span> <span id="stat-health">100</span>%</span>
+                <span class="status-item"><span class="label">Guns:</span> <span id="stat-guns">0</span></span>
+                <span class="status-item"><span class="label">Net Worth:</span> $<span id="stat-net-worth">0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="game-content">
+            <!-- Market Panel -->
+            <div id="panel-market" class="panel">
+                <h3>Market Prices</h3>
+                <table id="market-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>You Have</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="market-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Inventory Panel -->
+            <div id="panel-inventory" class="panel">
+                <h3>Your Stash</h3>
+                <table id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Avg Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="action-bar">
+            <button id="btn-travel" class="btn btn-primary">Travel</button>
+            <button id="btn-bank" class="btn">Bank</button>
+            <button id="btn-loan-shark" class="btn">Loan Shark</button>
+            <button id="btn-inventory" class="btn btn-toggle" data-active="false">Stash</button>
+        </div>
+
+        <!-- Message Log -->
+        <div id="message-log">
+            <div id="messages"></div>
+        </div>
+    </div>
+
+    <!-- Travel Modal -->
+    <div id="modal-travel" class="modal">
+        <div class="modal-content">
+            <h3>Where do you want to go?</h3>
+            <div id="travel-locations" class="location-grid">
+            </div>
+            <button class="btn modal-close">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div id="modal-buy" class="modal">
+        <div class="modal-content">
+            <h3>Buy <span id="buy-item-name"></span></h3>
+            <p>Price: $<span id="buy-item-price"></span> each</p>
+            <p>You can afford: <span id="buy-max-afford"></span></p>
+            <p>Space available: <span id="buy-max-space"></span></p>
+            <div class="modal-input-group">
+                <label for="buy-quantity">Quantity:</label>
+                <input type="number" id="buy-quantity" min="0" value="0">
+                <button id="btn-buy-max" class="btn btn-small">Max</button>
+            </div>
+            <p class="modal-total">Total: $<span id="buy-total">0</span></p>
+            <div class="modal-actions">
+                <button id="btn-buy-confirm" class="btn btn-primary">Buy</button>
+                <button class="btn modal-close">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div id="modal-sell" class="modal">
+        <div class="modal-content">
+            <h3>Sell <span id="sell-item-name"></span></h3>
+            <p>Price: $<span id="sell-item-price"></span> each</p>
+            <p>You have: <span id="sell-max-qty"></span></p>
+            <div class="modal-input-group">
+                <label for="sell-quantity">Quantity:</label>
+                <input type="number" id="sell-quantity" min="0" value="0">
+                <button id="btn-sell-max" class="btn btn-small">Max</button>
+            </div>
+            <p class="modal-total">Total: $<span id="sell-total">0</span></p>
+            <div class="modal-actions">
+                <button id="btn-sell-confirm" class="btn btn-primary">Sell</button>
+                <button class="btn modal-close">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Modal -->
+    <div id="modal-bank" class="modal">
+        <div class="modal-content">
+            <h3>Bank</h3>
+            <p>Cash on hand: $<span id="bank-cash"></span></p>
+            <p>Bank balance: $<span id="bank-balance"></span></p>
+            <div class="bank-actions">
+                <div class="bank-section">
+                    <h4>Deposit</h4>
+                    <div class="modal-input-group">
+                        <input type="number" id="bank-deposit-amount" min="0" value="0">
+                        <button id="btn-deposit-max" class="btn btn-small">Max</button>
+                    </div>
+                    <button id="btn-deposit" class="btn btn-primary">Deposit</button>
+                </div>
+                <div class="bank-section">
+                    <h4>Withdraw</h4>
+                    <div class="modal-input-group">
+                        <input type="number" id="bank-withdraw-amount" min="0" value="0">
+                        <button id="btn-withdraw-max" class="btn btn-small">Max</button>
+                    </div>
+                    <button id="btn-withdraw" class="btn btn-primary">Withdraw</button>
+                </div>
+            </div>
+            <button class="btn modal-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Loan Shark Modal -->
+    <div id="modal-loan" class="modal">
+        <div class="modal-content">
+            <h3>Loan Shark</h3>
+            <p class="loan-warning">Interest: 10% per day!</p>
+            <p>Current debt: $<span id="loan-debt"></span></p>
+            <p>Cash on hand: $<span id="loan-cash"></span></p>
+            <div class="bank-actions">
+                <div class="bank-section">
+                    <h4>Repay Debt</h4>
+                    <div class="modal-input-group">
+                        <input type="number" id="loan-repay-amount" min="0" value="0">
+                        <button id="btn-repay-max" class="btn btn-small">Max</button>
+                    </div>
+                    <button id="btn-repay" class="btn btn-primary">Repay</button>
+                </div>
+                <div class="bank-section">
+                    <h4>Borrow More</h4>
+                    <div class="modal-input-group">
+                        <input type="number" id="loan-borrow-amount" min="0" value="0">
+                        <button id="btn-borrow-max" class="btn btn-small">Max</button>
+                    </div>
+                    <button id="btn-borrow" class="btn btn-primary">Borrow</button>
+                </div>
+            </div>
+            <button class="btn modal-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="modal-event" class="modal">
+        <div class="modal-content modal-event-content">
+            <h3 id="event-title">Event!</h3>
+            <p id="event-message"></p>
+            <div id="event-actions" class="modal-actions">
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="screen-gameover" class="screen">
+        <h2>Game Over</h2>
+        <div id="gameover-stats">
+            <div class="final-score">
+                <span class="label">Final Net Worth</span>
+                <span id="final-net-worth" class="big-number">$0</span>
+            </div>
+            <div class="stat-breakdown">
+                <div class="stat-line"><span>Cash on Hand:</span><span id="final-cash">$0</span></div>
+                <div class="stat-line"><span>Bank Balance:</span><span id="final-bank">$0</span></div>
+                <div class="stat-line"><span>Inventory Value:</span><span id="final-inventory">$0</span></div>
+                <div class="stat-line debt"><span>Outstanding Debt:</span><span id="final-debt">-$0</span></div>
+                <hr>
+                <div class="stat-line"><span>Days Survived:</span><span id="final-days">0</span></div>
+                <div class="stat-line"><span>Trades Made:</span><span id="final-trades">0</span></div>
+            </div>
+        </div>
+        <div class="gameover-rank" id="gameover-rank"></div>
+        <div class="title-menu">
+            <button id="btn-play-again" class="btn btn-primary">Play Again</button>
+            <button id="btn-gameover-scores" class="btn">High Scores</button>
+            <button id="btn-gameover-title" class="btn">Title Screen</button>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
